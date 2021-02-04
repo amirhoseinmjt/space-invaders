@@ -7,10 +7,28 @@
 #include<cstdlib>
 
 
-//LENGTH OF VECTOR: |V| = sqrt(V.x^2 + V.y^2)
-//NORMALIZE VECTOR: U = V / |V|
 
 using namespace sf;
+
+class Enemy
+{
+public:
+	int hp;
+	int hpmax ;
+	Sprite  Shape ;
+	Enemy(Texture *texture , Vector2u windowsize )
+	{
+		this-> hpmax = rand()%3 + 1;
+		this->hp = this->hpmax ;
+		this->Shape.setTexture(*texture);
+		this->Shape.setScale(0.1f, 0.1f);
+		this->Shape.setPosition(rand()%windowsize.x - this->Shape.getGlobalBounds().width, this->Shape.getGlobalBounds().height);
+
+	}
+
+	~Enemy(){}
+
+};
 
 class Bullet
 {
@@ -50,11 +68,28 @@ int main()
 	Bullet b1;
 	std::vector<Bullet> bullets;
 
+	
+
 	//Vectors
 	Vector2f playerCenter;
 	Vector2f mousePosWindow;
 	Vector2f aimDir;
 	Vector2f aimDirNorm;
+
+	//Enemy
+	/*RectangleShape enemy;
+	enemy.setFillColor(Color::White);
+	enemy.setPosition(100 , 100) ;
+	enemy.setSize(Vector2f(50.f, 50.f));
+	int spawnCounter = 20;
+	
+	int y ;*/
+	Vector2f movement(5.f ,0.f );
+	Texture ent ;
+	ent.loadFromFile("enemyve.png");
+
+	std::vector<Enemy> enemies;
+	enemies.push_back(Enemy(&ent , window.getSize()));
 
 	while (window.isOpen())
 	{
@@ -83,8 +118,20 @@ int main()
 			player.move(-10.f, 0.f);
 		if (Keyboard::isKeyPressed(Keyboard::D))
 			player.move(10.f, 0.f);
+			
+			//dont go out :))
 		
-
+		if(player.getPosition().x <= 0)
+		{
+			player.setPosition(0.f, player.getPosition().y) ;
+		}
+		else if(player.getPosition().x >= window.getSize().x)
+		{
+			//player.setPosition(window.getSize().x - player.getLocalBounds().width, player.getPosition().y) ;
+			player.setPosition(window.getSize().x , player.getPosition().y) ;
+		}
+		
+		
 		//Shooting
 		if (Mouse::isButtonPressed(Mouse::Left))
 		{
@@ -102,8 +149,27 @@ int main()
 			if (bullets[i].shape.getPosition().x < 0 || bullets[i].shape.getPosition().x > window.getSize().x
 				|| bullets[i].shape.getPosition().y < 0 || bullets[i].shape.getPosition().y > window.getSize().y)
 				bullets.erase(bullets.begin() + i);
+
+			
 				
 		}
+
+		//enemy 
+
+		//enemy movment control
+		/*if(enemy.getPosition().x >= window.getSize().x -25)
+		{
+			movement.x *= -1;
+
+			enemy.setPosition(enemy.getPosition().x, enemy.getPosition().y+50 ) ;
+		}
+		if(enemy.getPosition().x <= 0)
+		{
+			movement.x *= -1;
+			enemy.setPosition(enemy.getPosition().x, enemy.getPosition().y+50 );
+		}
+	
+		enemy.move(movement) ;*/
 
 		//Draw
 		window.clear();
@@ -111,6 +177,30 @@ int main()
 
 		for (size_t i = 0; i < bullets.size(); i++)		
 			window.draw(bullets[i].shape);
+		//window.draw(enemy);
+		for (size_t i = 0; i < enemies.size(); i++)
+		{	
+			//enemy move
+			if(enemies[i].Shape.getPosition().x >= window.getSize().x -25)
+			{
+				movement.x *= -1;
+
+				enemies[i].Shape.setPosition(enemies[i].Shape.getPosition().x, enemies[i].Shape.getPosition().y+50 ) ;
+			}
+			if(enemies[i].Shape.getPosition().x <= 0)
+			{
+				movement.x *= -1;
+				enemies[i].Shape.setPosition(enemies[i].Shape.getPosition().x, enemies[i].Shape.getPosition().y+50 );
+			}
+	
+			enemies[i].Shape.move(movement) ;
+
+			window.draw(enemies[i].Shape);
+
+
+		}
+		
+
 		
 		window.display();
 	}
