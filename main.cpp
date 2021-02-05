@@ -24,7 +24,7 @@ public:
 		this-> hpmax = rand()%3 + 1;
 		this->hp = this->hpmax ;
 		this->Shape.setTexture(*texture);
-		this->Shape.setScale(0.1f, 0.1f);
+		this->Shape.setScale(0.15f, 0.15f);
 		this->Shape.setPosition(rand()%windowsize.x - this->Shape.getGlobalBounds().width, rand()%200 -this->Shape.getGlobalBounds().height);
 
 	}
@@ -32,6 +32,30 @@ public:
 	~Enemy(){}
 
 };
+
+/*class Enemy2
+{
+public:
+	int hp;
+	int hpmax ;
+	Sprite  Shape ;
+	float speedx =7;
+	float speedy =0;
+
+	Enemy2(Texture *texture , Vector2u windowsize )
+	{
+		this-> hpmax = rand()%3 + 1;
+		this->hp = this->hpmax ;
+		this->Shape.setTexture(*texture);
+		this->Shape.setScale(0.15f, 0.15f);
+		this->Shape.setPosition(rand()%windowsize.x - this->Shape.getGlobalBounds().width, rand()%200 -this->Shape.getGlobalBounds().height);
+
+	}
+
+	~Enemy2(){}
+
+};*/
+
 
 
 class Bullet
@@ -67,10 +91,14 @@ int main()
     Texture ship ;
     ship.loadFromFile("ship.png");
     player.setTexture(&ship);
+	int shoottimer = 15 ;
 
 	//Bullets
 	Bullet b1;
+	Bullet enmbul ;
 	std::vector<Bullet> bullets;
+	std::vector<Bullet> enemybullets;
+
 	
 	//Vectors
 	Vector2f playerCenter;
@@ -78,12 +106,20 @@ int main()
 	Vector2f aimDir;
 	Vector2f aimDirNorm;
 
+	/*Vector2f enemyCenter;
+	Vector2f destination;
+	Vector2f enemyaimDir;
+	Vector2f enemyaimDirNorm;*/
+
+
 
 	//enemy	
 	Texture ent ;
 	ent.loadFromFile("enemyve.png");
 	std::vector<Enemy> enemies;
-	int enemyspowntimer1 = 0 , enemyspowntimer2 ;
+	std::vector<Enemy2> enemiestype2;
+	int enemyspowntimer1 = 0 , enemyspowntimer2=0 ;
+	//int enemyshoottimer = 10 ;
 
 
 
@@ -152,18 +188,22 @@ int main()
 		for (size_t i = 0; i < bullets.size(); i++)		
 			window.draw(bullets[i].shape);
 
+		if(shoottimer < 15)
+			shoottimer++ ;
 
 		//Shooting
-		if (Mouse::isButtonPressed(Mouse::Left))
+		if (Mouse::isButtonPressed(Mouse::Left) && shoottimer>= 15)
 		{
 			b1.shape.setPosition(playerCenter);
 			b1.currVelocity = aimDirNorm * b1.maxSpeed;
-
 			bullets.push_back(Bullet(b1));
+			shoottimer=0 ;
 		}
 
+		
 		for (size_t i = 0; i < bullets.size(); i++)
-		{
+		{	
+			//move
 			bullets[i].shape.move(bullets[i].currVelocity);
 
 			//Out of bounds
@@ -171,8 +211,7 @@ int main()
 				|| bullets[i].shape.getPosition().y < 0 || bullets[i].shape.getPosition().y > window.getSize().y)
 				{
 					bullets.erase(bullets.begin() + i);
-					break ;
-					
+					break ;					
 				}
 				
 
@@ -189,6 +228,16 @@ int main()
 						break;
 					}
 				}
+
+				for (size_t k = 0; k < enemiestype2.size(); k++)
+				{
+					if (bullets[i].shape.getGlobalBounds().intersects(enemiestype2[k].Shape.getGlobalBounds()))
+					{
+						bullets.erase(bullets.begin() + i);
+						enemiestype2.erase(enemiestype2.begin() + k);
+						break;
+					}
+				}
 			}				
 		}
 
@@ -197,7 +246,7 @@ int main()
 
 
 		//enemy 
-			//spown
+			//spown1
 		if(enemyspowntimer1 < 100)
 		++enemyspowntimer1 ;
 
@@ -206,7 +255,7 @@ int main()
 		if(enemyspowntimer1 >= 100)
 		{
 			enemies.push_back(Enemy(&ent , window.getSize())); 
-			enemyspowntimer1 = 0 ;
+			enemyspowntimer1 = 0 ;			
 		}
 			//moving
 		for (size_t i = 0; i < enemies.size(); i++)
@@ -248,6 +297,76 @@ int main()
 			}
 									
 			window.draw(enemies[i].Shape);
+
+		}
+
+
+
+
+			//spown2
+		if(enemyspowntimer2 < 700)
+		++enemyspowntimer2 ;
+
+		//	if(enemyshoottimer < 10)
+			//enemyshoottimer++ ;
+		if(enemyspowntimer2 >= 700)
+		{
+			enemiestype2.push_back(Enemy2(&ent , window.getSize())); 
+			enemyspowntimer2 = 0 ;
+			
+		}
+			//moving
+		for (size_t i = 0; i < enemiestype2.size(); i++)
+		{	
+					
+	
+			enemiestype2[i].Shape.move(Vector2f(0.f, 5.f)) ;
+
+			if (enemiestype2[i].Shape.getPosition().y<= -enemiestype2[i].Shape.getGlobalBounds().height )
+			{
+				enemiestype2.erase(enemiestype2.begin()+i);
+				break ;
+			}
+
+			/*if(enemies[i].Shape.getPosition().y>=550)
+			{
+				enemies.erase(enemies.begin()+i);
+				--Hp;
+				break;
+				
+			}
+			//enemyCenter = Vector2f(player.getPosition());
+			destination = Vector2f(enemiestype2[i].Shape.getPosition().x, window.getSize().y);
+			enemyCenter = Vector2f(enemiestype2[i].Shape.getPosition());
+			enemyaimDir = destination - enemyCenter;
+			enemyaimDirNorm.x = enemyaimDir.x / sqrt(pow(enemyaimDir.x, 2) + pow(enemyaimDir.y, 2));
+        	enemyaimDirNorm.y = enemyaimDir.y / sqrt(pow(enemyaimDir.x, 2) + pow(enemyaimDir.y, 2));
+			
+			if ( enemyshoottimer>= 10)
+			{
+			enmbul.shape.setPosition(Vector2f(enemiestype2[i].Shape.getPosition()));
+			enmbul.currVelocity = enemyaimDirNorm * enmbul.maxSpeed;
+			enemybullets.push_back(Bullet(enmbul));
+			enemyshoottimer=0 ;
+			}
+
+			for (size_t i = 0; i < bullets.size(); i++)
+			{	
+			//move
+			enemybullets[i].shape.move(enemybullets[i].currVelocity);
+			}
+
+			for (size_t i = 0; i < enemybullets.size(); i++)		
+			window.draw(enemybullets[i].shape);*/
+
+			if (enemiestype2[i].Shape.getGlobalBounds().intersects(player.getGlobalBounds()))
+			{
+				enemiestype2.erase(enemiestype2.begin()+i);
+				Hp -=5;
+				break;
+			}
+									
+			window.draw(enemiestype2[i].Shape);
 
 		}
 
