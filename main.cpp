@@ -8,6 +8,7 @@
 
 
 
+
 using namespace sf;
 
 class Enemy
@@ -33,7 +34,7 @@ public:
 
 };
 
-/*class Enemy2
+class Enemy2
 {
 public:
 	int hp;
@@ -48,14 +49,49 @@ public:
 		this->hp = this->hpmax ;
 		this->Shape.setTexture(*texture);
 		this->Shape.setScale(0.15f, 0.15f);
-		this->Shape.setPosition(rand()%windowsize.x - this->Shape.getGlobalBounds().width, rand()%200 -this->Shape.getGlobalBounds().height);
+		this->Shape.setPosition(rand()%windowsize.x , rand()%200 -this->Shape.getGlobalBounds().height);
 
 	}
 
 	~Enemy2(){}
 
-};*/
+};
 
+class heart
+{
+public :
+	Sprite Shape ;
+	float speedx=0;
+	float speedy=0;
+	heart(Texture *texture2 , Vector2u windowsize )
+	{
+	
+		this->Shape.setTexture(*texture2);
+		this->Shape.setScale(0.05f, 0.05f);
+		this->Shape.setPosition(rand()%windowsize.x + this->Shape.getGlobalBounds().width, 0);
+
+	}
+	~heart(){}
+
+};
+
+class rocket
+{
+public :
+	Sprite Shape ;
+	float speedx=0;
+	float speedy=0;
+	rocket(Texture *texture2 , Vector2u windowsize )
+	{
+	
+		this->Shape.setTexture(*texture2);
+		this->Shape.setScale(0.1f, 0.1f);
+		this->Shape.setPosition(rand()%windowsize.x + this->Shape.getGlobalBounds().width, 0);
+
+	}
+	~rocket(){}
+
+};
 
 
 class Bullet
@@ -87,11 +123,69 @@ int main()
 	player.setOrigin(50.f, 50.f);
     player.setPosition(950, 750) ;
 	int Hp =12 ;
+	int xp =0 ;
+	int maxxp =0 ;
+
+	Font font;
+				if (!font.loadFromFile("TheBrown.otf"))
+				{
+					std::cout << "Load Failed";
+				}
+	
+	
+	Text hptxt;
+	hptxt.setFont(font);
+	hptxt.setCharacterSize(20);
+	hptxt.setFillColor(Color::White);
+	hptxt.setPosition(50 , 30);
+	hptxt.setStyle(Text::Bold);
+
+	Text erhptxt;
+	erhptxt.setFont(font);
+	erhptxt.setCharacterSize(20);
+	erhptxt.setFillColor(Color::White);
+	erhptxt.setPosition(50 , 70);
+	erhptxt.setStyle(Text::Bold);
+
+	Text xpt;
+	xpt.setFont(font);
+	xpt.setCharacterSize(20);
+	xpt.setFillColor(Color::Yellow);
+	xpt.setPosition(50 , 750);
+	xpt.setStyle(Text::Bold);
+
+	Text xpmaxt;
+	xpmaxt.setFont(font);
+	xpmaxt.setCharacterSize(20);
+	xpmaxt.setFillColor(Color::Blue);
+	xpmaxt.setPosition(150 , 750);
+	xpmaxt.setStyle(Text::Bold);
+
+	Text reload;
+	reload.setFont(font);
+	reload.setCharacterSize(50);
+	reload.setFillColor(Color::Yellow);
+	reload.setPosition(200 , 500);
+	reload.setStyle(Text::Bold);
+
+
+
+	RectangleShape health(Vector2f(Hp*20, 7)) ;
+	health.setFillColor(Color::White );
+	health.setPosition(50, 50);
+
+
+	int earthhp=10 ;
+	RectangleShape earthhealth(Vector2f(earthhp*20, 7)) ;
+	earthhealth.setFillColor(Color::Green );
+	earthhealth.setPosition(50, 100);
+	
+
 
     Texture ship ;
     ship.loadFromFile("ship.png");
     player.setTexture(&ship);
-	int shoottimer = 15 ;
+	int shoottimer = 30 ;
 
 	//Bullets
 	Bullet b1;
@@ -106,12 +200,6 @@ int main()
 	Vector2f aimDir;
 	Vector2f aimDirNorm;
 
-	/*Vector2f enemyCenter;
-	Vector2f destination;
-	Vector2f enemyaimDir;
-	Vector2f enemyaimDirNorm;*/
-
-
 
 	//enemy	
 	Texture ent ;
@@ -119,8 +207,44 @@ int main()
 	std::vector<Enemy> enemies;
 	std::vector<Enemy2> enemiestype2;
 	int enemyspowntimer1 = 0 , enemyspowntimer2=0 ;
-	//int enemyshoottimer = 10 ;
 
+	Text ehptxt;
+	ehptxt.setFont(font);
+	ehptxt.setCharacterSize(15);
+	ehptxt.setFillColor(Color::Red);
+
+	Text ehptxt1;
+	ehptxt1.setFont(font);
+	ehptxt1.setCharacterSize(15);
+	ehptxt1.setFillColor(Color::Red);
+
+	Text limit;
+	limit.setFont(font);
+	limit.setCharacterSize(15);
+	limit.setFillColor(Color::Red);
+	limit.setPosition(10 , 520);
+
+// level up
+	Text level;
+	level.setFont(font);
+	level.setCharacterSize(15);
+	level.setFillColor(Color::Red);
+	level.setPosition(500 , 30);
+	level.setStyle(Text::Bold);
+
+
+
+	//heart 
+	Texture life;
+	life.loadFromFile("Heart.png");
+	std::vector<heart> hearts;
+	int he = 0;
+
+	//rocket
+	Texture bomb;
+	bomb.loadFromFile("rocket.png");
+	std::vector<rocket> rockets;
+	int re = 0;
 
 
 	//limit line
@@ -128,6 +252,10 @@ int main()
 	line.setFillColor(Color::Red);
 	line.setPosition(Vector2f(0.f, 550.f));
 
+	//level up
+	int shoottime =15 ;
+	int enemytime = 100 ;
+	int lno = 1;
 
 	while (window.isOpen())
 	{
@@ -138,8 +266,39 @@ int main()
                ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape)))
 				window.close();
 		}
+		if(Hp>0 && earthhp>0)
+		{
+		health.setSize(Vector2f(Hp*20, 10)) ;
+		earthhealth.setSize(Vector2f(earthhp*20, 10));
 
-		//Update
+//.......................................................level up................................
+	if(xp>700)
+	{
+		lno =5 ;
+		shoottime = 8 ;
+		enemytime = 60 ;
+	}
+	else if(xp>500)
+	{	
+		lno =4 ;
+		shoottime = 8 ;
+		enemytime = 70 ;
+	}	
+	else if (xp>250)
+	{	
+		lno =3 ;
+		shoottime = 9 ;
+		enemytime = 80 ;	
+	}
+	else if (xp>150)
+	{	
+		lno =2 ;
+		shoottime = 12 ;
+		enemytime = 90 ;	
+	}
+	
+
+//..............................................................Update diraction....................
 		//Vectors
 		playerCenter = Vector2f(player.getPosition());
 		mousePosWindow = Vector2f(Mouse::getPosition(window));
@@ -151,6 +310,7 @@ int main()
 		float deg = atan2(aimDirNorm.y, aimDirNorm.x) * 180 / PI;
 		player.setRotation(deg + 90);
      
+//.............................................................moving control...........................
 		//Player
 		if (Keyboard::isKeyPressed(Keyboard::A))
 			player.move(-10.f, 0.f);
@@ -182,17 +342,18 @@ int main()
 			player.setPosition(player.getPosition().x, 610.f);
 		}
 		
-			
+//.........................................................shoot handeling..................................................			
 		window.clear();
 		window.draw(player);
 		for (size_t i = 0; i < bullets.size(); i++)		
 			window.draw(bullets[i].shape);
-
-		if(shoottimer < 15)
-			shoottimer++ ;
-
+		
+		
 		//Shooting
-		if (Mouse::isButtonPressed(Mouse::Left) && shoottimer>= 15)
+		if(shoottimer < shoottime)
+			shoottimer++ ;
+		
+		if (Mouse::isButtonPressed(Mouse::Left) && shoottimer>= shoottime)
 		{
 			b1.shape.setPosition(playerCenter);
 			b1.currVelocity = aimDirNorm * b1.maxSpeed;
@@ -200,7 +361,7 @@ int main()
 			shoottimer=0 ;
 		}
 
-		
+//...........................................................shooting & colision & bullet movment control ..........................		
 		for (size_t i = 0; i < bullets.size(); i++)
 		{	
 			//move
@@ -214,7 +375,6 @@ int main()
 					break ;					
 				}
 				
-
 			//colision
 			else
 			{
@@ -222,9 +382,14 @@ int main()
 				for (size_t k = 0; k < enemies.size(); k++)
 				{
 					if (bullets[i].shape.getGlobalBounds().intersects(enemies[k].Shape.getGlobalBounds()))
-					{
+					{	
+						--enemies[k].hp;
 						bullets.erase(bullets.begin() + i);
-						enemies.erase(enemies.begin() + k);
+						if(enemies[k].hp<=1)
+						{
+							enemies.erase(enemies.begin() + k);
+							xp += 10 ;
+						}	
 						break;
 					}
 				}
@@ -232,9 +397,14 @@ int main()
 				for (size_t k = 0; k < enemiestype2.size(); k++)
 				{
 					if (bullets[i].shape.getGlobalBounds().intersects(enemiestype2[k].Shape.getGlobalBounds()))
-					{
+					{	
+						--enemiestype2[k].hp;
 						bullets.erase(bullets.begin() + i);
-						enemiestype2.erase(enemiestype2.begin() + k);
+						if(enemiestype2[k].hp<=1)
+						{
+							enemiestype2.erase(enemiestype2.begin() + k);
+							xp += 10 ;
+						}						
 						break;
 					}
 				}
@@ -243,16 +413,16 @@ int main()
 
 		
 
-
+//..................................................................enemy type 1......................................
 
 		//enemy 
 			//spown1
-		if(enemyspowntimer1 < 100)
+		if(enemyspowntimer1 < enemytime)
 		++enemyspowntimer1 ;
 
 
 
-		if(enemyspowntimer1 >= 100)
+		if(enemyspowntimer1 >= enemytime)
 		{
 			enemies.push_back(Enemy(&ent , window.getSize())); 
 			enemyspowntimer1 = 0 ;			
@@ -263,21 +433,22 @@ int main()
 			
 			if(enemies[i].Shape.getPosition().x >= window.getSize().x -50)
 			{
-				enemies[i].speedx *= -1.2;
+				enemies[i].speedx *= -1.3;
 				//every time it will be faster than befor
 				enemies[i].Shape.setPosition(enemies[i].Shape.getPosition().x, enemies[i].Shape.getPosition().y+100 ) ;
 			}
 			if(enemies[i].Shape.getPosition().x <= 0)
 			{
-				enemies[i].speedx *= -1.2;
+				enemies[i].speedx *= -1.3;
 				enemies[i].Shape.setPosition(enemies[i].Shape.getPosition().x, enemies[i].Shape.getPosition().y+100 );
 			}
 	
 			enemies[i].Shape.move(Vector2f(enemies[i].speedx, enemies[i].speedy)) ;
 
-			if (enemies[i].Shape.getPosition().y<= -enemies[i].Shape.getGlobalBounds().height )
+			if (enemies[i].Shape.getPosition().y>= window.getSize().y - enemies[i].Shape.getGlobalBounds().height )
 			{
 				enemies.erase(enemies.begin()+i);
+				--earthhp;
 				break ;
 			}
 
@@ -295,21 +466,23 @@ int main()
 				Hp -=5;
 				break;
 			}
-									
+			ehptxt1.setString(std::to_string(enemies[i].hp)+"/"+std::to_string(enemies[i].hpmax))	;
+			ehptxt1.setPosition(enemies[i].Shape.getPosition().x, enemies[i].Shape.getPosition().y - ehptxt1.getGlobalBounds().height);
+			window.draw(ehptxt1);						
 			window.draw(enemies[i].Shape);
 
 		}
 
 
 
-
+//.......................................................................enemy type 2..............................
 			//spown2
-		if(enemyspowntimer2 < 700)
+		if(enemyspowntimer2 < enemytime)
 		++enemyspowntimer2 ;
 
 		//	if(enemyshoottimer < 10)
 			//enemyshoottimer++ ;
-		if(enemyspowntimer2 >= 700)
+		if(enemyspowntimer2 >= enemytime)
 		{
 			enemiestype2.push_back(Enemy2(&ent , window.getSize())); 
 			enemyspowntimer2 = 0 ;
@@ -322,9 +495,10 @@ int main()
 	
 			enemiestype2[i].Shape.move(Vector2f(0.f, 5.f)) ;
 
-			if (enemiestype2[i].Shape.getPosition().y<= -enemiestype2[i].Shape.getGlobalBounds().height )
+			if (enemiestype2[i].Shape.getPosition().y>= window.getSize().y  -enemiestype2[i].Shape.getGlobalBounds().height )
 			{
 				enemiestype2.erase(enemiestype2.begin()+i);
+				--earthhp;
 				break ;
 			}
 
@@ -334,42 +508,160 @@ int main()
 				--Hp;
 				break;
 				
-			}
-			//enemyCenter = Vector2f(player.getPosition());
-			destination = Vector2f(enemiestype2[i].Shape.getPosition().x, window.getSize().y);
-			enemyCenter = Vector2f(enemiestype2[i].Shape.getPosition());
-			enemyaimDir = destination - enemyCenter;
-			enemyaimDirNorm.x = enemyaimDir.x / sqrt(pow(enemyaimDir.x, 2) + pow(enemyaimDir.y, 2));
-        	enemyaimDirNorm.y = enemyaimDir.y / sqrt(pow(enemyaimDir.x, 2) + pow(enemyaimDir.y, 2));
+			}*/
 			
-			if ( enemyshoottimer>= 10)
-			{
-			enmbul.shape.setPosition(Vector2f(enemiestype2[i].Shape.getPosition()));
-			enmbul.currVelocity = enemyaimDirNorm * enmbul.maxSpeed;
-			enemybullets.push_back(Bullet(enmbul));
-			enemyshoottimer=0 ;
-			}
-
-			for (size_t i = 0; i < bullets.size(); i++)
-			{	
-			//move
-			enemybullets[i].shape.move(enemybullets[i].currVelocity);
-			}
-
-			for (size_t i = 0; i < enemybullets.size(); i++)		
-			window.draw(enemybullets[i].shape);*/
 
 			if (enemiestype2[i].Shape.getGlobalBounds().intersects(player.getGlobalBounds()))
 			{
 				enemiestype2.erase(enemiestype2.begin()+i);
-				Hp -=5;
+				Hp-=3;
 				break;
 			}
-									
+
+			ehptxt.setString(std::to_string(enemiestype2[i].hp)+"/"+std::to_string(enemiestype2[i].hpmax))	;
+			ehptxt.setPosition(enemiestype2[i].Shape.getPosition().x, enemiestype2[i].Shape.getPosition().y - ehptxt.getGlobalBounds().height);
+			window.draw(ehptxt);			
 			window.draw(enemiestype2[i].Shape);
 
 		}
 
+//........................................................... extra ............................
+
+		//heart
+
+		if(he < 600)
+		++he ;
+
+		if(he >= 600)
+		{
+			hearts.push_back(heart(&life , window.getSize())); 
+			he = 0 ;
+			
+		}
+			//moving
+		for (size_t i = 0; i < hearts.size(); i++)
+		{							
+			hearts[i].Shape.move(Vector2f(0.f, 5.f)) ;
+
+			if (hearts[i].Shape.getPosition().y<= -hearts[i].Shape.getGlobalBounds().height )
+			{
+				hearts.erase(hearts.begin()+i);
+				break ;
+			}		
+
+			if (hearts[i].Shape.getGlobalBounds().intersects(player.getGlobalBounds()))
+			{
+				hearts.erase(hearts.begin()+i);
+				++Hp;
+				break;
+			}									
+			window.draw(hearts[i].Shape);
+		}
+
+		//rocket
+
+		if(re < 400)
+		++re ;
+
+		if(re >= 400)
+		{
+			rockets.push_back(rocket(&bomb , window.getSize())); 
+			re = 0 ;
+			
+		}
+			//moving
+		for (size_t i = 0; i < hearts.size(); i++)
+		{							
+			rockets[i].Shape.move(Vector2f(0.f, 7.f)) ;
+
+			if (rockets[i].Shape.getPosition().y<= -rockets[i].Shape.getGlobalBounds().height )
+			{
+				rockets.erase(rockets.begin()+i);
+				break ;
+			}		
+
+			if (rockets[i].Shape.getGlobalBounds().intersects(player.getGlobalBounds()))
+			{
+				rockets.erase(rockets.begin()+i);
+				--Hp;
+				break;
+			}									
+			window.draw(rockets[i].Shape);
+		}
+
+//......................................................game over & drawing................................................
+
+		}
+		//game over
+		if (Hp<=0 || earthhp<=0)
+		{
+			Text text;
+				Font font;
+				if (!font.loadFromFile("game_over.ttf"))
+				{
+					std::cout << "Load Failed";
+				}
+				text.setFont(font);
+				text.setString("Game Over");
+				reload.setString("press Enter to continu");
+				text.setCharacterSize(300);
+				text.setFillColor(Color::Red);
+				text.setStyle(Text::Bold | Text::Underlined);
+				text.setPosition(200, 100);
+				text.setOutlineColor(Color::Yellow);
+
+				//window.clear();
+				//Draw the text
+				window.draw(text);
+				//Display the text to the window
+				window.display();
+				if(Keyboard::isKeyPressed(Keyboard::Enter))
+				{
+					xp=0;
+					Hp =12 ;
+					lno =1 ;
+					earthhp =10 ;
+
+					for (size_t k = 0; k < enemiestype2.size(); k++)
+					{
+						enemiestype2.erase(enemiestype2.begin() + k);
+					}
+					for (size_t k = 0; k < enemies.size(); k++)
+					{
+						enemies.erase(enemies.begin() + k);
+					}
+
+
+				}
+
+				
+				//sleep(seconds(10));
+				//window.close();
+
+
+		}
+		
+		
+
+	level.setString("level : "+std::to_string(lno))	;
+	limit.setString("movment limit")	;
+	hptxt.setString("ship health : "+std::to_string(Hp)+" / 12")	;
+	erhptxt.setString("earth resistance : "+std::to_string(earthhp)+" / 10")	;
+	xpt.setString("score : "+std::to_string(xp))	;
+	if(xp>=maxxp)
+	{
+		maxxp=xp ;
+	}
+	xpmaxt.setString("high score : "+std::to_string(maxxp))	;
+		window.draw(reload);
+		window.draw(limit);
+		window.draw(xpmaxt);
+		window.draw(level);
+		window.draw(xpt);
+		window.draw(hptxt);
+		window.draw(erhptxt);
+		window.draw(earthhealth);
+		window.draw(health);
 		window.draw(line);
 		window.display();
 	}
