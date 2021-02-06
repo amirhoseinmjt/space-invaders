@@ -1,7 +1,8 @@
 #include<iostream>
-#include"SFML/Graphics.hpp"
-#include"SFML/Window.hpp"
-#include"SFML/System.hpp"
+#include<SFML/Graphics.hpp>
+#include<SFML/Window.hpp>
+#include<SFML/System.hpp>
+#include<SFML/Audio.hpp>
 #include<math.h>
 #include<vector>
 #include<cstdlib>
@@ -116,6 +117,40 @@ int main()
 	RenderWindow window(sf::VideoMode(1000, 800), "space invades",  sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize );
     window.setMouseCursorVisible(true);
     window.setFramerateLimit(60);
+	
+	
+	Texture backtexture ;
+	backtexture.loadFromFile("space.png");
+
+	Sprite backsprite ;
+	backsprite.setTexture(backtexture);
+	backsprite.setPosition(0, 0);
+	
+	SoundBuffer shootbuffer ;
+	shootbuffer.loadFromFile("playerShootSound.wav");
+	Sound shooting ;
+	shooting.setBuffer(shootbuffer);
+
+
+	SoundBuffer dethbuffer ;
+	dethbuffer.loadFromFile("enemyHit.wav");
+	Sound deth ;
+	deth.setBuffer(dethbuffer);
+
+
+	SoundBuffer gobuffer ;
+	gobuffer.loadFromFile("playerDeathSound.wav");
+	Sound go ;
+	go.setBuffer(dethbuffer);
+
+	Music backgroudmu ;
+	backgroudmu.openFromFile("backgroundMusic.ogg");
+	backgroudmu.play();
+
+	
+	
+	
+	
 	//Player
 	CircleShape player(50.f);
 	player.setFillColor(Color::White);
@@ -257,6 +292,7 @@ int main()
 	int enemytime = 100 ;
 	int lno = 1;
 
+	int v ;
 	while (window.isOpen())
 	{
 		Event event;
@@ -266,8 +302,10 @@ int main()
                ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape)))
 				window.close();
 		}
+		window.clear();
+		window.draw(backsprite);
 		if(Hp>0 && earthhp>0)
-		{
+		{ v=1;
 		health.setSize(Vector2f(Hp*20, 10)) ;
 		earthhealth.setSize(Vector2f(earthhp*20, 10));
 
@@ -343,7 +381,7 @@ int main()
 		}
 		
 //.........................................................shoot handeling..................................................			
-		window.clear();
+		
 		window.draw(player);
 		for (size_t i = 0; i < bullets.size(); i++)		
 			window.draw(bullets[i].shape);
@@ -354,7 +392,7 @@ int main()
 			shoottimer++ ;
 		
 		if (Mouse::isButtonPressed(Mouse::Left) && shoottimer>= shoottime)
-		{
+		{	shooting.play();
 			b1.shape.setPosition(playerCenter);
 			b1.currVelocity = aimDirNorm * b1.maxSpeed;
 			bullets.push_back(Bullet(b1));
@@ -388,6 +426,7 @@ int main()
 						if(enemies[k].hp<=1)
 						{
 							enemies.erase(enemies.begin() + k);
+							deth.play();
 							xp += 10 ;
 						}	
 						break;
@@ -552,6 +591,7 @@ int main()
 			if (hearts[i].Shape.getGlobalBounds().intersects(player.getGlobalBounds()))
 			{
 				hearts.erase(hearts.begin()+i);
+				if(Hp!=12)
 				++Hp;
 				break;
 			}									
@@ -594,7 +634,12 @@ int main()
 		}
 		//game over
 		if (Hp<=0 || earthhp<=0)
-		{
+		{	
+			if(v==1)
+			{
+				go.play();
+				v=0 ;
+			}
 			Text text;
 				Font font;
 				if (!font.loadFromFile("game_over.ttf"))
@@ -613,8 +658,9 @@ int main()
 				//window.clear();
 				//Draw the text
 				window.draw(text);
+				window.draw(reload);
 				//Display the text to the window
-				window.display();
+				//window.display();
 				if(Keyboard::isKeyPressed(Keyboard::Enter))
 				{
 					xp=0;
@@ -653,7 +699,7 @@ int main()
 		maxxp=xp ;
 	}
 	xpmaxt.setString("high score : "+std::to_string(maxxp))	;
-		window.draw(reload);
+		
 		window.draw(limit);
 		window.draw(xpmaxt);
 		window.draw(level);
